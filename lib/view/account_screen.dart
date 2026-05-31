@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 
 class AccountScreen extends StatelessWidget {
@@ -52,8 +53,14 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileSection(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+Widget _buildProfileSection(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final authController = Get.find<AuthController>();
+
+  return Obx(() {
+    final photoUrl = authController.userPhotoUrl.value;
+    final name = authController.userName.value;
+    final email = authController.userEmail.value;
 
     return Container(
       width: double.infinity,
@@ -62,19 +69,22 @@ class AccountScreen extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: const AssetImage('assets/images/avatar.jpg'),
+            backgroundImage: photoUrl.isNotEmpty
+                ? NetworkImage(photoUrl)
+                : const AssetImage('assets/images/avatar.jpg')
+                    as ImageProvider,
           ),
           const SizedBox(height: 16),
           Text(
-            'Kalindu ',
+            name.isNotEmpty ? name : 'User',
             style: AppTextStyle.withColour(
-              AppTextStyle.h2, 
+              AppTextStyle.h2,
               Theme.of(context).textTheme.bodyLarge!.color!,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            'kalindu.geeth@example.com',
+            email.isNotEmpty ? email : '',
             style: AppTextStyle.withColour(
               AppTextStyle.bodyMedium,
               isDark ? Colors.white : Colors.black,
@@ -84,29 +94,20 @@ class AccountScreen extends StatelessWidget {
           OutlinedButton(
             onPressed: () => Get.to(() => const EditProfileScreen()),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 12
-              ),
-              side: BorderSide(
-                color: isDark ? Colors.white : Colors.black,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              side: BorderSide(color: isDark ? Colors.white : Colors.black),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+                  borderRadius: BorderRadius.circular(8)),
             ),
-            child: Text(
-              'Edit Profile',
-              style: AppTextStyle.withColour(
-                AppTextStyle.bodySmall,
-                Theme.of(context).textTheme.bodyMedium!.color! ,
-              ),
-            ),
+            child: Text('Edit Profile',
+                style: AppTextStyle.withColour(AppTextStyle.bodySmall,
+                    Theme.of(context).textTheme.bodyMedium!.color!)),
           ),
         ],
       ),
     );
-  }
+  });
+}
 
  Widget _buildMenuSection(BuildContext context){
     final isDark = Theme.of(context).brightness == Brightness.dark;
