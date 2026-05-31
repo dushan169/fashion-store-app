@@ -1,10 +1,12 @@
 import 'package:fashion_store_app/utils/app_textstyles.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:fashion_store_app/models/product.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
-  const ProductCard({super.key, required this.product});
+  final dynamic wishlistController;
+  const ProductCard({super.key, required this.product, required this.wishlistController});
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +41,21 @@ class ProductCard extends StatelessWidget {
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(12),
               ),
-              child: Image.asset(
-                product.imageUrl,
-                width: double.infinity,
-                fit:BoxFit.cover),
+              child: product.imageUrl.startsWith('http')
+    ? Image.network(
+        product.imageUrl,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.image_not_supported, size: 50),
+      )
+    : Image.asset(
+        product.imageUrl,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.image_not_supported, size: 50),
+      ),
             ),
             ),
             //favourite button
@@ -50,15 +63,17 @@ class ProductCard extends StatelessWidget {
               right: 8,
               top:8,
               child: IconButton( 
-                icon: Icon(
-                  product.isFavourite ? Icons.favorite : Icons.favorite_border,
-                  color: product.isFavourite
-                      ? Theme.of(context).primaryColor
-                      : isDark
-                          ? Colors.grey[400]!
-                          : Colors.grey,
-                        ),
-                        onPressed: (){},
+                icon: Obx(() => Icon(
+                wishlistController.isWishlisted(product)
+              ? Icons.favorite
+              : Icons.favorite_border,
+              color: wishlistController.isWishlisted(product)
+              ? Theme.of(context).primaryColor
+              : isDark ? Colors.white : Colors.black,
+                )),
+                        onPressed: (){
+                          wishlistController.toggleWishlist(product);
+                        },
                       ),
                    ),
                    if(product.oldPrice != null)

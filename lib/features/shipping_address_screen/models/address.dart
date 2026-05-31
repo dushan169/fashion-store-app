@@ -1,9 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-
-enum AddressType {home, office, other}
+enum AddressType { home, office, other }
 
 class Address {
   final String id;
+  final String userId;
   final String label;
   final String fullAddress;
   final String city;
@@ -14,6 +15,7 @@ class Address {
 
   const Address({
     required this.id,
+    required this.userId,
     required this.label,
     required this.fullAddress,
     required this.city,
@@ -24,4 +26,35 @@ class Address {
   });
 
   String get typeString => type.name;
+  String get fullDetails => '$fullAddress, $city, $state $zipCode';
+
+  Map<String, dynamic> toFirestore() => {
+        'userId': userId,
+        'label': label,
+        'fullAddress': fullAddress,
+        'city': city,
+        'state': state,
+        'zipCode': zipCode,
+        'isDefault': isDefault,
+        'type': type.name,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+  factory Address.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Address(
+      id: doc.id,
+      userId: data['userId'] ?? '',
+      label: data['label'] ?? '',
+      fullAddress: data['fullAddress'] ?? '',
+      city: data['city'] ?? '',
+      state: data['state'] ?? '',
+      zipCode: data['zipCode'] ?? '',
+      isDefault: data['isDefault'] ?? false,
+      type: AddressType.values.firstWhere(
+        (t) => t.name == data['type'],
+        orElse: () => AddressType.home,
+      ),
+    );
+  }
 }

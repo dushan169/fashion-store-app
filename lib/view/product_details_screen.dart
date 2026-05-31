@@ -1,12 +1,18 @@
 import 'package:fashion_store_app/utils/app_textstyles.dart';
+import 'package:fashion_store_app/view/cart_screen.dart';
 import 'package:fashion_store_app/view/widget/size_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:fashion_store_app/models/product.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:get/get.dart';
+import 'package:fashion_store_app/controllers/cart_controller.dart';
+import 'package:fashion_store_app/controllers/wishlist_controller.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   final Product product;
-  const ProductDetailsScreen({super.key, required this.product});
+  final CartController cartController = Get.find<CartController>();
+  final WishlistController wishlistController = Get.find<WishlistController>();
+  ProductDetailsScreen({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -52,22 +58,36 @@ class ProductDetailsScreen extends StatelessWidget {
                 //image
                 AspectRatio(
                   aspectRatio: 16/9,
-                child:Image.asset(
-                  product.imageUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+              child: product.imageUrl.startsWith('http')
+    ? Image.network(
+        product.imageUrl,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.image_not_supported, size: 80),
+      )
+    : Image.asset(
+        product.imageUrl,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.image_not_supported, size: 80),
+      ),
                 ),
 
                 //favourite button
                 Positioned(
-                  child: IconButton(onPressed: (){},
-                 icon: Icon(
-                  product.isFavourite ?
-                  Icons.favorite 
-                  :Icons.favorite_border,
-                  color: product.isFavourite?
-                   Theme.of(context).primaryColor:isDark? Colors.white :Colors.black),
+                  child: IconButton(onPressed: (){
+                    wishlistController.toggleWishlist(product);
+                  },
+                 icon: Obx(() => Icon(
+                    wishlistController.isWishlisted(product)
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                    color: wishlistController.isWishlisted(product)
+                    ? Theme.of(context).primaryColor
+                    : isDark ? Colors.white : Colors.black,
+                    )),
                   ),
                 ),
               ],
@@ -137,7 +157,9 @@ class ProductDetailsScreen extends StatelessWidget {
         child: Padding(padding: EdgeInsets.all(screenWidth * 0.04),
         child: Row(
           children: [
-            Expanded(child: OutlinedButton(onPressed: (){},
+            Expanded(child: OutlinedButton(onPressed: (){
+              cartController.addToCart(product);
+            },
             style:OutlinedButton.styleFrom(
               padding: EdgeInsets.symmetric(
                 vertical: screenHeight * 0.02,
@@ -154,7 +176,10 @@ class ProductDetailsScreen extends StatelessWidget {
                ),),)),
                SizedBox(width: screenWidth * 0.04,),
 
-               Expanded(child: ElevatedButton(onPressed: (){},
+               Expanded(child: ElevatedButton(onPressed: (){
+                cartController.addToCart(product);
+                Get.to(() => CartScreen());
+               },
             style:ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(
                 vertical: screenHeight * 0.02,

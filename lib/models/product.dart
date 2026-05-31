@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Product {
+  final String id;
   final String name;
   final String category;
   final double price;
@@ -6,8 +9,10 @@ class Product {
   final String imageUrl;
   final bool isFavourite;
   final String description;
+  final int stock;
 
   const Product({
+    required this.id,
     required this.category,
     required this.description,
     required this.imageUrl,
@@ -15,42 +20,32 @@ class Product {
     required this.price,
     this.oldPrice,
     this.isFavourite = false,
+    this.stock = 0,
   });
-}
 
-final List<Product> products =[
-  const Product(
-    name: 'Frock',
-    category: 'Ladies Outfit',  
-    imageUrl: 'assets/images/dress (1).jpg', 
-    price: 2750.00,
-    oldPrice: 3000.00,
-    isFavourite: true,
-    description: '',
-  ),
-  const Product(
-    name: 'Grey t-shirt',
-    category: 'Outfit',  
-    imageUrl: 'assets/images/dress (3).jpg',
-    price: 2500.00,
-    oldPrice: 2700.00,
-    isFavourite: true,
-    description: '',
-  ),
-  const Product(
-    name: 'Out Side t-shirt',
-    category: 'Outfit',  
-    imageUrl: 'assets/images/dress (2).jpg', 
-    price: 1200.00,
-    oldPrice: 1500.00,
-    description: '',
-  ),
-  const Product(
-    name: 'Moose short',
-    category: 'Outfit',  
-    imageUrl: 'assets/images/dress (4).jpg', 
-    price: 2500.00,
-    oldPrice: 2800.00,
-    description: '',
-  ),
-];
+  factory Product.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Product(
+      id: doc.id,
+      name: data['name'] ?? '',
+      category: data['category'] ?? '',
+      price: (data['price'] ?? 0).toDouble(),
+      oldPrice: data['oldPrice'] != null ? (data['oldPrice']).toDouble() : null,
+      imageUrl: data['imageUrl'] ?? '',
+      isFavourite: data['isFavourite'] ?? false,
+      description: data['description'] ?? '',
+      stock: data['stock'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() => {
+        'name': name,
+        'category': category,
+        'price': price,
+        'oldPrice': oldPrice,
+        'imageUrl': imageUrl,
+        'isFavourite': isFavourite,
+        'description': description,
+        'stock': stock,
+      };
+}

@@ -2,6 +2,7 @@ import 'package:fashion_store_app/utils/app_textstyles.dart';
 import 'package:fashion_store_app/view/widget/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:fashion_store_app/controllers/auth_controller.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
   ForgotPasswordScreen({super.key});
@@ -67,9 +68,23 @@ class ForgotPasswordScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    _showSuccessDialog(context);
-                  },
+                  onPressed: () async {
+  if (_emailController.text.isEmpty) {
+    Get.snackbar('Error', 'Please enter your email!');
+    return;
+  }
+  if (!GetUtils.isEmail(_emailController.text)) {
+    Get.snackbar('Error', 'Please enter a valid email!');
+    return;
+  }
+  final authController = Get.find<AuthController>();
+  final success = await authController.sendPasswordResetEmail(
+    _emailController.text,
+  );
+  if (success) {
+    _showSuccessDialog(context);
+  }
+},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryIconTheme.color,
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),

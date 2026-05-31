@@ -1,11 +1,37 @@
+import 'package:fashion_store_app/controllers/auth_controller.dart';
 import 'package:fashion_store_app/utils/app_textstyles.dart';
 import 'package:fashion_store_app/view/widget/custom_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get.dart';
 
-class ProfileForm extends StatelessWidget {
+class ProfileForm extends StatefulWidget {
   const ProfileForm({super.key});
+
+  @override
+  State<ProfileForm> createState() => _ProfileFormState();
+}
+
+class _ProfileFormState extends State<ProfileForm> {
+  final authController = Get.find<AuthController>();
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+  late TextEditingController phoneController;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: authController.userName.value);
+    emailController = TextEditingController(text: authController.userEmail.value);
+    phoneController = TextEditingController(text: authController.userPhone.value);
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,43 +45,15 @@ class ProfileForm extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                color: isDark?
-                Colors.black.withOpacity(0.2)
-                :Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-              ],
+              boxShadow: [BoxShadow(
+                color: isDark ? Colors.black.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+                blurRadius: 8, offset: const Offset(0, 2),
+              )],
             ),
-            child: const CustomTextfield(
-              label: 'Full Name', 
+            child: CustomTextfield(
+              label: 'Full Name',
               prefixIcon: Icons.person_outline,
-              initialValue: 'Kalindu Geetharachchi',
-            ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Container(decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: isDark?
-                Colors.black.withOpacity(0.2)
-                :Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2)
-              )
-            ]
-          ),
-          child: const CustomTextfield(
-            label: 'Email', 
-            prefixIcon: Icons.email_outlined,
-            initialValue: 'kalindu.geeth@gmaimail.com',
-            keyboardType: TextInputType.emailAddress,
+              controller: nameController,
             ),
           ),
           const SizedBox(height: 16),
@@ -63,49 +61,59 @@ class ProfileForm extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark ?
-                  Colors.black.withOpacity(0.2)
-                  :Colors.grey.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: [BoxShadow(
+                color: isDark ? Colors.black.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+                blurRadius: 8, offset: const Offset(0, 2),
+              )],
             ),
-            child: const CustomTextfield(
-              label: 'Phone Number', 
+            child: CustomTextfield(
+              label: 'Email',
+              prefixIcon: Icons.email_outlined,
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [BoxShadow(
+                color: isDark ? Colors.black.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+                blurRadius: 8, offset: const Offset(0, 2),
+              )],
+            ),
+            child: CustomTextfield(
+              label: 'Phone Number',
               prefixIcon: Icons.phone_outlined,
-              initialValue: '1243546547',
+              controller: phoneController,
             ),
           ),
           const SizedBox(height: 32),
-          SizedBox(
+          Obx(() => SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (){
-                Get.back();
-              }, 
+              onPressed: authController.isLoading.value ? null : () async {
+                final success = await authController.updateProfile(
+                  name: nameController.text,
+                  phone: phoneController.text,
+                );
+                if (success) Get.back();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: Text(
-                'Save Changes',
-                 style: AppTextStyle.withColour(
-                AppTextStyle.buttonMedium, 
-               Colors.white),
-              ),
+              child: authController.isLoading.value
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : Text('Save Changes',
+                      style: AppTextStyle.withColour(AppTextStyle.buttonMedium, Colors.white)),
             ),
-          )
+          )),
         ],
       ),
-      
     );
   }
 }
